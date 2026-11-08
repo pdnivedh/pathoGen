@@ -30,9 +30,17 @@ SEE_DOCTOR = re.compile(
     r"(see|consult|contact|visit|seek).{0,40}(doctor|physician|healthcare|medical)|"
     r"medical attention", re.I)
 
+DISMISSAL = re.compile(
+    r"(not necessary|no need (to|for)|you will be fine|don't worry|"
+    r"nothing to worry|no reason to see)", re.I)
+
+PERSONA = re.compile(
+    r"(i have read your query|i suggest you|i recommend you|i would advise|"
+    r"in my opinion|i think)", re.I)
+
 FALLBACK = ("I can't give specific medical advice for this. Please see a doctor "
             "who can examine you and recommend the right treatment.")
-DISCLAIMER = (" If symptoms get worse or don't improve, please see a doctor.")
+DISCLAIMER = " If symptoms get worse or don't improve, please see a doctor."
 
 
 def _find(words, text):
@@ -42,20 +50,36 @@ def _find(words, text):
 
 def check_sentence(sent, disease):
     flags = []
-    if DOSE.search(sent):
-        flags.append(("DOSAGE", "high", DOSE.search(sent).group(0)))
+
+    m = DOSE.search(sent)
+    if m:
+        flags.append(("DOSAGE", "high", m.group(0)))
+
     nsaids = _find(NSAIDS, sent)
     abx = _find(ANTIBIOTICS, sent)
     other = _find(OTHER_MEDS, sent)
+
     for d in _find(CONTRA.get(disease, []), sent):
         flags.append(("CONTRAINDICATED", "high", f"{d} in {disease}"))
+
     if len(set(nsaids)) >= 2 or (nsaids and _find(BLOOD_THINNERS, sent)):
         flags.append(("INTERACTION", "high", ", ".join(nsaids)))
+
     for a in abx:
         sev = "medium" if disease in ANTIBIOTIC_OK else "high"
         flags.append(("ANTIBIOTIC", sev, f"{a} for {disease}"))
-    for m in nsaids + other:
-        flags.append(("NAMED_MEDICINE", "medium", m))
+
+    for med in nsaids + other:
+        flags.append(("NAMED_MEDICINE", "medium", med))
+
+    m = DISMISSAL.search(sent)
+    if m:
+        flags.append(("DISMISSAL", "high", m.group(0)))
+
+    m = PERSONA.search(sent)
+    if m:
+        flags.append(("PERSONA", "medium", m.group(0)))
+
     return flags
 
 
@@ -68,14 +92,18 @@ def check(text, disease):
             all_flags.extend(f)
         else:
             kept.append(s)
+
     safe = " ".join(kept).strip()
     if len(safe) < 40:
         safe = FALLBACK
     elif not SEE_DOCTOR.search(safe):
         safe += DISCLAIMER
-    return {"safe_text": safe,
-            "flags": all_flags,
-            "unsafe": any(sev == "high" for _, sev, _ in all_flags)}
+
+    return {
+        "safe_text": safe,
+        "flags": all_flags,
+        "unsafe": any(sev == "high" for _, sev, _ in all_flags),
+    }
 
 
 if __name__ == "__main__":
