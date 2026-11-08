@@ -53,8 +53,8 @@ def compute_metrics(p):
 
 args = TrainingArguments(
     output_dir=OUT_DIR,
-    num_train_epochs=6,
-    learning_rate=3e-5,
+    num_train_epochs=12,
+    learning_rate=5e-5,
     per_device_train_batch_size=16,
     per_device_eval_batch_size=32,
     weight_decay=0.01,
