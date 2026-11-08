@@ -38,7 +38,10 @@ def prep(df):
 train_ds, val_ds = prep(train), prep(val)
 
 model = AutoModelForSequenceClassification.from_pretrained(
-    MODEL, num_labels=len(labels), id2label=id2label, label2id=label2id
+    MODEL, num_labels=len(labels)
+)
+print("Classifier outputs:", model.classifier.out_features)
+
 )
 
 def compute_metrics(p):
@@ -55,7 +58,7 @@ args = TrainingArguments(
     per_device_train_batch_size=16,
     per_device_eval_batch_size=32,
     weight_decay=0.01,
-    warmup_ratio=0.1,
+    warmup_steps=30,
     eval_strategy="epoch",
     save_strategy="epoch",
     load_best_model_at_end=True,
