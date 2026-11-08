@@ -16,32 +16,55 @@ GEN = "google/flan-t5-large"
 tok = AutoTokenizer.from_pretrained(GEN)
 gen = AutoModelForSeq2SeqLM.from_pretrained(GEN).to(device)
 
+BOILER = re.compile(
+    r"(hope (i|this|that)|regards|let me know|thank|dr\.|best wishes|take care|"
+    r"feel free|revert|further (query|question)|welcome to|i have gone through|"
+    r"online|chat)", re.I)
 
-def retrieve(query, k=3):
-    qv = embedder.encode([query], normalize_embeddings=True).astype("float32")
-    scores, ids = index.search(qv, k)
-    return [(float(s), int(i)) for s, i in zip(scores[0], ids[0])]
+
+def clean_response(t):
+    t = re.sub(r"\s+", " ", t).strip()
+    t = re.sub(r"^(hi|hello|dear)[^.,!]*[,.!]\s*", "", t, flags=re.I)
+    sents = re.split(r"(?<=[.!?])\s+", t)
+    return " ".join(s for s in sents if not BOILER.search(s)).strip()
 
 
-def clean(t, n=400):
+def short(t, n=110):
     return re.sub(r"\s+", " ", t).strip()[:n]
 
 
+def retrieve(query, k=3, pool=10, min_chars=120):
+    qv = embedder.encode([query], normalize_embeddings=True).astype("float32")
+    scores, ids = index.search(qv, pool)
+    hits = []
+    for s, i in zip(scores[0], ids[0]):
+        resp = clean_response(corpus["doctor_response"][int(i)])
+        if len(resp) >= min_chars:
+            hits.append((float(s), int(i), resp[:450]))
+        if len(hits) == k:
+            break
+    return hits
+
+
 def build_prompt(disease, symptoms, hits):
-    evidence = "\n".join(f"- {clean(corpus['doctor_response'][i])}" for _, i in hits)
+    notes = "\n".join(f"- {r}" for _, _, r in hits)
     return (
-        f"A patient reports: {symptoms}\n"
-        f"Likely condition: {disease}.\n"
-        f"Doctor responses to similar cases:\n{evidence}\n\n"
-        "Using only the doctor responses above, write a short, general treatment "
-        "suggestion for this patient and say when to see a doctor."
+        "Doctor notes from similar cases:\n"
+        f"{notes}\n\n"
+        f"Patient symptoms: {symptoms}\n"
+        f"Likely condition: {disease}\n\n"
+        "Write a general treatment suggestion in 2 to 3 sentences based on the "
+        "doctor notes, and say when the patient should see a doctor:"
     )
 
 
 @torch.no_grad()
 def generate(prompt):
     enc = tok(prompt, return_tensors="pt", truncation=True, max_length=1024).to(device)
-    out = gen.generate(**enc, max_new_tokens=150, num_beams=4, no_repeat_ngram_size=3)
+    out = gen.generate(
+        **enc, max_new_tokens=120, min_new_tokens=30,
+        num_beams=4, no_repeat_ngram_size=3, repetition_penalty=1.3,
+    )
     return tok.decode(out[0], skip_special_tokens=True)
 
 
@@ -57,15 +80,8 @@ for disease, symptoms in cases:
     print("=" * 80)
     print("SYMPTOMS:", symptoms)
     print("DISEASE :", disease)
-
-    plain = retrieve(symptoms)
-    aug = retrieve(f"{disease}. {symptoms}")
-    print("\nTop retrieved, symptoms only:")
-    for s, i in plain:
-        print(f"  [{s:.3f}] {clean(corpus['patient_message'][i], 110)}")
-    print("Top retrieved, disease + symptoms:")
-    for s, i in aug:
-        print(f"  [{s:.3f}] {clean(corpus['patient_message'][i], 110)}")
-
-    prompt = build_prompt(disease, symptoms, aug)
-    print("\nGENERATED:\n", generate(prompt))
+    hits = retrieve(f"{disease}. {symptoms}")
+    print("\nCleaned evidence used:")
+    for s, i, r in hits:
+        print(f"  [{s:.3f}] {short(r, 160)}")
+    print("\nGENERATED:\n", generate(build_prompt(disease, symptoms, hits)))
