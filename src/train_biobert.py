@@ -40,9 +40,9 @@ train_ds, val_ds = prep(train), prep(val)
 model = AutoModelForSequenceClassification.from_pretrained(
     MODEL, num_labels=len(labels)
 )
+
 print("Classifier outputs:", model.classifier.out_features)
 
-)
 
 def compute_metrics(p):
     preds = np.argmax(p.predictions, axis=1)
