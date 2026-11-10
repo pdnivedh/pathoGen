@@ -103,7 +103,12 @@ def generate(disease, symptoms, hits):
 def tidy(t, max_sents=4):
     t = re.sub(r"[*#]+", "", t)
     t = re.sub(r"\s+", " ", t).strip()
+    t = re.sub(r"\s\d{1,2}\.\s*$", "", t)
+    t = re.sub(r"(^|\s)\d{1,2}\.\s+(?=[A-Z])", " ", t)
+    t = re.sub(r"\s+", " ", t).strip()
     sents = re.split(r"(?<=[.!?])\s+", t)
+    if sents and not re.search(r"[.!?]$", sents[-1]):
+        sents = sents[:-1]
     return " ".join(sents[:max_sents])
 
 

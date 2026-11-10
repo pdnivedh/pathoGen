@@ -28,7 +28,10 @@ CONTRA = {
 DRUG_CLASS = re.compile(
     r"\b(corticosteroid|steroid|calcineurin inhibitor|anti-inflammatory|"
     r"analgesic|antihistamine|antibiotic|antifungal|antiviral|painkiller|"
-    r"nsaid)s?\b", re.I)
+    r"nsaid|antacid|h2 blocker|proton pump inhibitor|ppi|decongestant|"
+    r"antipyretic|laxative|cough suppressant|expectorant)s?\b", re.I)
+
+
 NSAID_CLASS = re.compile(r"\b(nsaid|anti-inflammatory)s?\b", re.I)
 ANTIBIOTIC_CLASS = re.compile(r"\bantibiotics?\b", re.I)
 
