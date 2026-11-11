@@ -94,7 +94,7 @@ def generate(disease, symptoms, hits):
     text = ch_tok.apply_chat_template(messages, tokenize=False,
                                       add_generation_prompt=True)
     enc = ch_tok(text, return_tensors="pt").to(device)
-    out = ch.generate(**enc, max_new_tokens=110, do_sample=False,
+    out = ch.generate(**enc, max_new_tokens=130, do_sample=False,
                       repetition_penalty=1.1)
     return ch_tok.decode(out[0][enc["input_ids"].shape[1]:],
                          skip_special_tokens=True)
