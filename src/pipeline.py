@@ -82,13 +82,15 @@ def generate(disease, symptoms, hits):
     messages = [
         {"role": "system", "content":
             "You are a careful medical information assistant, not a doctor. "
-            "Use only the doctor notes provided. Never name medicines, doses "
-            "or drug classes. Reply in at most 3 plain sentences with no lists "
-            "and no markdown, and say when to see a doctor."},
+            "Use only the doctor notes provided, which were written for other "
+            "patients. Never name medicines, doses, drug classes or people. "
+            "Never assume the patient is already taking any treatment. "
+            "Reply in at most 3 plain sentences with no lists and no markdown, "
+            "and say when to see a doctor."},
         {"role": "user", "content":
             f"Doctor notes from similar cases:\n{notes}\n\n"
             f"Patient symptoms: {symptoms}\n"
-            f"Likely condition (from a classifier, may be wrong): {disease}\n\n"
+            f"Working condition: {disease}. Do not suggest a different diagnosis.\n\n"
             "Give general self-care advice."},
     ]
     text = ch_tok.apply_chat_template(messages, tokenize=False,

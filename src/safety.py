@@ -6,7 +6,7 @@ NSAIDS = ["ibuprofen", "aspirin", "naproxen", "diclofenac", "ketorolac",
 ANTIBIOTICS = ["amoxicillin", "azithromycin", "ciprofloxacin", "doxycycline",
                "cefixime", "ceftriaxone", "cephalexin", "metronidazole",
                "levofloxacin", "clarithromycin", "penicillin", "augmentin"]
-OTHER_MEDS = ["paracetamol", "acetaminophen", "tylenol", "dolo", "crocin",
+OTHER_MEDS = ["paracetamol", "acetaminophen", "tylenol", "dolo", "ketoconazole", "clotrimazole", "dettol", "crocin",
               "calpol", "hydrocortisone", "prednisolone", "cetirizine",
               "loratadine", "omeprazole", "pantoprazole", "ranitidine"]
 BLOOD_THINNERS = ["warfarin", "heparin", "clopidogrel"]
@@ -27,9 +27,10 @@ CONTRA = {
 
 DRUG_CLASS = re.compile(
     r"\b(corticosteroid|steroid|calcineurin inhibitor|anti-inflammatory|"
-    r"analgesic|antihistamine|antibiotic|antifungal|antiviral|painkiller|"
-    r"nsaid|antacid|h2 blocker|proton pump inhibitor|ppi|decongestant|"
-    r"antipyretic|laxative|cough suppressant|expectorant)s?\b", re.I)
+    r"analgesic|antihistamine|antibiotic|antifungal|antiviral|antimalarial|"
+    r"antidiarrheal|painkiller|nsaid|antacid|h2 blocker|proton pump inhibitor|"
+    r"ppi|decongestant|antipyretic|laxative|cough suppressant|expectorant|"
+    r"retinoid|zinc supplement|supplement)s?\b", re.I)
 
 
 NSAID_CLASS = re.compile(r"\b(nsaid|anti-inflammatory)s?\b", re.I)
@@ -42,7 +43,8 @@ DOSE = re.compile(
     r"\btds\b)", re.I)
 
 SEE_DOCTOR = re.compile(
-    r"(see|consult|contact|visit|seek).{0,40}(doctor|physician|healthcare|medical)|"
+    r"(see|consult|contact|visit|seek).{0,40}(doctor|physician|healthcare|"
+    r"medical|dermatologist|specialist|neurologist|gastroenterologist)|"
     r"medical attention", re.I)
 
 DISMISSAL = re.compile(
@@ -51,7 +53,7 @@ DISMISSAL = re.compile(
 
 PERSONA = re.compile(
     r"(i have read your query|i (would )?(suggest|recommend|advise)|"
-    r"in my opinion|i think)", re.I)
+    r"in my opinion|i think|\bdr\.? ?[a-z]+\b)", re.I)
 
 FALLBACK = ("I can't give specific medical advice for this. Please see a doctor "
             "who can examine you and recommend the right treatment.")
@@ -114,6 +116,7 @@ def check_sentence(sent, disease):
 
 
 def check(text, disease):
+    text = re.sub(r"\b(Dr|Mr|Mrs|Ms)\.", r"\1", text)	
     sents = re.split(r"(?<=[.!?])\s+", re.sub(r"\s+", " ", text).strip())
     kept, all_flags = [], []
     for s in sents:
