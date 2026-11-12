@@ -30,7 +30,7 @@ DRUG_CLASS = re.compile(
     r"analgesic|antihistamine|antibiotic|antifungal|antiviral|antimalarial|"
     r"antidiarrheal|painkiller|nsaid|antacid|h2 blocker|proton pump inhibitor|"
     r"ppi|decongestant|antipyretic|laxative|cough suppressant|expectorant|"
-    r"retinoid|zinc supplement|supplement)s?\b", re.I)
+    r"retinoid|supplement)s?\b", re.I)
 
 
 NSAID_CLASS = re.compile(r"\b(nsaid|anti-inflammatory)s?\b", re.I)
@@ -53,7 +53,7 @@ DISMISSAL = re.compile(
 
 PERSONA = re.compile(
     r"(i have read your query|i (would )?(suggest|recommend|advise)|"
-    r"in my opinion|i think|\bdr\.? ?[a-z]+\b)", re.I)
+    r"in my opinion|i think|\bdr\.?\s+[a-z]+)", re.I)
 
 FALLBACK = ("I can't give specific medical advice for this. Please see a doctor "
             "who can examine you and recommend the right treatment.")
