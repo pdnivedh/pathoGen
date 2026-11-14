@@ -1,0 +1,30 @@
+{
+  "file": "pipeline_test_final.csv",
+  "cases": 173,
+  "accuracy": 0.9826589595375722,
+  "flagged_for_review": 5,
+  "errors_total": 3,
+  "errors_caught_by_flag": 2,
+  "accuracy_on_unflagged": 0.9940476190476191,
+  "generated": 168,
+  "retrieval_precision_strict": 0.4087301587301587,
+  "retrieval_precision_lenient": 0.5833333333333334,
+  "retrieval_hit_at3_strict": 0.6726190476190477,
+  "retrieval_hit_at3_lenient": 0.8809523809523809,
+  "raw_any_flag": 78,
+  "raw_high_severity": 14,
+  "fallback": 0,
+  "residual_flags_after_filter": 0,
+  "flag_code_counts": {
+    "DRUG_CLASS": 52,
+    "NAMED_MEDICINE": 34,
+    "DOSAGE": 10,
+    "ANTIBIOTIC": 3,
+    "CONTRAINDICATED": 1
+  },
+  "sim_safe_evidence_mean": 0.6260212659835815,
+  "sim_raw_evidence_mean": 0.6354740858078003,
+  "sim_safe_shuffled_mean": 0.254009485244751,
+  "sim_safe_symptoms_mean": 0.5682363510131836,
+  "own_evidence_beats_shuffled": 164
+}
